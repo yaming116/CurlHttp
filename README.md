@@ -3,7 +3,7 @@ Curl library for Android
 > libcurl通过URL语法传送数据，支持`FTP ， FTPS ，HTTP ，HTTPS， GOPHER ， TFTP ，SCP， SFTP ，TELNET， DICT ，LDAP， LDAPS ，FILE ，IMAP， SMTP ， POP3， RTSP库和RTMP`协议 。总之 libcurl是一个功能非常强大的C开源网络库[官网](http://curl.haxx.se/libcurl/c/)，[GitHub](https://github.com/curl/curl)
 
 支持`armeabi,armeabi-v7, x86`平台下 的使用， 通过java jni调用，可以完成jni写的native网络请求。
-####目前支持
+###目前支持
 - [x] addHeader
 - [x] setBody
 - [x] setHttpProxy
@@ -19,7 +19,7 @@ Curl library for Android
 - [x] postUrl
 - [x] getUrl
 
-### 用法示例
+###用法示例
 
 ####GET请求
 ``` java
@@ -34,7 +34,7 @@ CurlResult result = CurlHttp.newInstance()
                         .execute();
 ```
 
-####CURL状态码列表
+###CURL状态码列表
 | 状态码  |  对应值   | 状态原因 | 解释  |
 | :-------- | --------:| :--: |
 | CURLE_OK|0  | 正常访问 |     |
@@ -110,8 +110,9 @@ CurlResult result = CurlHttp.newInstance()
 | CURLE_SSL_CRL_BADFILE|80|无法关闭SSL连接|未能关闭SSL 连接|
 | CURLE_SSL_ISSUER_ERROR|81|服务未准备| |
 
-
-# License
+###Thanks
+thanks to [yanglinjingshu](http://blog.csdn.net/yanglinjingshu/article/details/45605381)
+###License
 
     Copyright 2016 Nightonke
 
