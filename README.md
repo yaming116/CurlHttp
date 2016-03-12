@@ -35,13 +35,14 @@ CurlResult result = CurlHttp.newInstance()
 ```
 
 ###CURL状态码列表
-| 状态码  |  对应值   | 状态原因 | 解释  |
-| :-------- | --------:| :--: |
-| CURLE_OK|0  | 正常访问 |     |
+
+| 状态码 | 对应值| 状态原因 | 解释 |
+| :------------ |:---------------:|:---------------|:---------------|
+| CURLE_OK|0  | 正常访问 |   null  |
 | CURLE_UNSUPPORTED_PROTOCOL|1  | 错误的协议 |  未支持的协议。此版cURL 不支持这一协议   |
 | CURLE_FAILED_INIT|2  | 初始化代码失败 | 初始化失败    |
 | CURLE_URL_MALFORMAT|3  | URL格式不正确 |URL 格式错误。语法不正确。     |
-| CURLE_NOT_BUILT_IN|4  | 请求协议错误 |     |
+| CURLE_NOT_BUILT_IN|4  | 请求协议错误 |   null  |
 | CURLE_COULDNT_RESOLVE_PROXY|5  | 无法解析代理 |     无法解析代理。无法解析给定代理主机|
 | CURLE_COULDNT_RESOLVE_HOST|6  | 无法解析主机地址 |  无法解析主机。无法解析给定的远程主机   |
 | CURLE_COULDNT_CONNECT|7  | 无法连接到主机 |  无法连接到主机。   |
@@ -84,7 +85,7 @@ CurlResult result = CurlHttp.newInstance()
 | CURLE_RECV_ERROR|54|设定默认SSL加密失败|无法将SSL 加密引擎设置为默认|
 | CURLE_OBSOLETE57|55|无法发送网络数据|发送网络数据失败|
 | CURLE_SSL_CERTPROBLEM|56|衰竭接收网络数据|在接收网络数据时失败|
-| CURLE_SSL_CIPHER|57| | |
+| CURLE_SSL_CIPHER|57|null |null|
 | CURLE_SSL_CACERT|58|本地客户端证书|本地证书有问题|
 | CURLE_BAD_CONTENT_ENCODING|59|无法使用密码|无法使用指定的SSL密码|
 | CURLE_LDAP_INVALID_URL|60|凭证无法验证|peer 证书无法被已知的CA 证书验证|
@@ -108,7 +109,7 @@ CurlResult result = CurlHttp.newInstance()
 | CURLE_SSL_SHUTDOWN_FAILED|78|URL中引用资源不存在|URL中引用的资源不存在|
 | CURLE_AGAIN|79|错误发生在SSH会话|SSH 会话期间发生一个未知错误|
 | CURLE_SSL_CRL_BADFILE|80|无法关闭SSL连接|未能关闭SSL 连接|
-| CURLE_SSL_ISSUER_ERROR|81|服务未准备| |
+| CURLE_SSL_ISSUER_ERROR|81|服务未准备|null |
 
 ###Thanks
 thanks to [yanglinjingshu](http://blog.csdn.net/yanglinjingshu/article/details/45605381)
