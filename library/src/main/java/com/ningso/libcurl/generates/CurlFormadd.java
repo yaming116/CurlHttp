@@ -7,7 +7,6 @@ import java.util.HashMap;
  * Auto generated from 'curl/curl.h', DO NOT EDIT!!!
  *
  * @author: NingSo
- * @Email: ningso.ping@gmail.com
  */
 
 public enum CurlFormadd {

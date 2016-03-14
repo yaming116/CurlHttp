@@ -3,8 +3,9 @@ package com.ningso.libcurl;
 import com.ningso.libcurl.generates.CurlCode;
 
 /**
+ * * Created by walexy on 15/1/31.下午5:39
+ *
  * @author walexy
- * @createTime 2015年1月30日 下午3:20:19
  */
 public class CurlException extends RuntimeException {
 

@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
  * Created by NingSo on 16/3/12.下午5:24
  *
  * @author: NingSo
- * @Email: ningso.ping@gmail.com
  */
 public class CurlHttp {
     private static final String TAG = CurlHttp.class.getSimpleName();
@@ -68,11 +67,7 @@ public class CurlHttp {
         return curlEasy;
     }
 
-    /**
-     * @param name
-     * @param value pass a null value clear previous set(or curl default) header
-     * @return
-     */
+    //value pass a null value clear previous set(or curl default) header
     public CurlHttp addHeader(String name, String value) {
         headerMap.put(name, value);
         return this;
@@ -103,71 +98,71 @@ public class CurlHttp {
         return this;
     }
 
-    /**
-     * @param proxy [scheme]://
-     * @return
-     * @see http://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html
-     */
+//    /**
+//     * @param proxy [scheme]://
+//     * @return
+//     * @see http://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html
+//     */
     public CurlHttp setProxy(String proxy) {
         curl.curlEasySetopt(OptObjectPoint.CURLOPT_PROXY, proxy);
         return this;
     }
 
-    /**
-     * Auto redirect 301/302 request
-     *
-     * @param follow default true
-     * @return
-     */
+//    /**
+//     * Auto redirect 301/302 request
+//     *
+//     * @param follow default true
+//     * @return
+//     */
     public CurlHttp setFollowLocation(boolean follow) {
         followLocation = follow;
         return this;
     }
 
-    /**
-     * @param max Setting the limit to 0 will make libcurl refuse any redirect.
-     *            Set it to -1 for an infinite number of redirects.
-     *            Default 3
-     * @return
-     */
+//    /**
+//     * @param max Setting the limit to 0 will make libcurl refuse any redirect.
+//     *            Set it to -1 for an infinite number of redirects.
+//     *            Default 3
+//     * @return
+//     */
     public CurlHttp setMaxRedirects(int max) {
         maxRedirects = max;
         return this;
     }
 
-    /**
-     * set http proxy
-     *
-     * @param host
-     * @param port
-     * @return
-     */
+//    /**
+//     * set http proxy
+//     *
+//     * @param host
+//     * @param port
+//     * @return
+//     */
     public CurlHttp setHttpProxy(String host, int port) {
         this.proxyHost = host;
         this.proxyPort = port;
         return this;
     }
 
-    /**
-     * Using system proxy
-     *
-     * @param yes default yes
-     * @return
-     */
+//    /**
+//     * Using system proxy
+//     *
+//     * @param yes default yes
+//     * @return
+//     */
     public CurlHttp useSystemProxy(boolean yes) {
         this.useSystemProxy = yes;
         return this;
     }
 
-    /**
-     * Post via multipart/form-data<br/>
-     * <p/>
-     * default: false <br/>
-     * if {@link #addMultiPartPostParam(String, String, String, byte[])} called, always post as multipart)
-     *
-     * @param yes
-     * @return
-     */
+//    /**
+//     * Post via multipart/form-data<br/>
+//     * <p/>
+//     * default: false <br/>
+//     * if {@link #addMultiPartPostParam(String, String, String, byte[])} called, always post as multipart)
+//     *
+//     * @param yes
+//     * @return
+//     */
     public CurlHttp postAsMultipart(boolean yes) {
         this.asMultipart = yes;
         return this;
@@ -205,11 +200,11 @@ public class CurlHttp {
         return this;
     }
 
-    /**
-     * @param name   will send as key[]
-     * @param values
-     * @return
-     */
+//    /**
+//     * @param name   will send as key[]
+//     * @param values
+//     * @return
+//     */
     public CurlHttp addParam(String name, List<String> values) {
         if (values != null && values.size() > 0) {
             for (String value : values) {
@@ -219,15 +214,15 @@ public class CurlHttp {
         return this;
     }
 
-    /**
-     * add multipart form field(post only)
-     *
-     * @param name        required
-     * @param filename    if null, "file.dat" will be used
-     * @param contentType if null, curl will detect from filename
-     * @param content     required
-     * @return
-     */
+//    /**
+//     * add multipart form field(post only)
+//     *
+//     * @param name        required
+//     * @param filename    if null, "file.dat" will be used
+//     * @param contentType if null, curl will detect from filename
+//     * @param content     required
+//     * @return
+//     */
     public CurlHttp addMultiPartPostParam(String name, String filename, String contentType, byte[] content) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("name is required");
@@ -242,13 +237,13 @@ public class CurlHttp {
         return this;
     }
 
-    /**
-     * set raw body to post(override {@link #addParam(String, List)} {@link #addParam(String, String)} and {@link #addMultiPartPostParam(String, String, String, byte[])})
-     *
-     * @param mimeType
-     * @param data
-     * @return
-     */
+//    /**
+//     * set raw body to post(override {@link #addParam(String, List)} {@link #addParam(String, String)} and {@link #addMultiPartPostParam(String, String, String, byte[])})
+//     *
+//     * @param mimeType
+//     * @param data
+//     * @return
+//     */
     public CurlHttp setBody(String mimeType, byte[] data) {
         addHeader("Content-Type", mimeType);
         this.body = data;

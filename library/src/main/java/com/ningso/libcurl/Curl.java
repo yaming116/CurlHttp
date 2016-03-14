@@ -13,13 +13,10 @@ import com.ningso.libcurl.params.MultiPart;
 import java.util.List;
 
 /**
+ * Created by walexy on 15/1/29.下午5:39
  * Curl的jni封装
  * 使用方法参考测试代码
  * Curl对象并非线程安全，请勿在多线程环境下共用一个Curl对象
- *
- * @author walexy
- * @createTime 2015-01-29 12:39:39
- * @see http://curl.haxx.se/libcurl/c/
  */
 public class Curl {
 
@@ -45,24 +42,18 @@ public class Curl {
     private static boolean INIT = false;
 
     public interface WriteCallback extends Callback {
-        /**
-         * 当接受到数据时被调用
-         *
-         * @param data
-         * @return 实际接受的数据长度
-         * @see http://curl.haxx.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
-         */
+
+        // 当接受到数据时被调用
+        //return 实际接受的数据长度
+        //http://curl.haxx.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
         public int readData(byte[] data);
     }
 
     public interface ReadCallback extends Callback {
-        /**
-         * 发送时调用
-         *
-         * @param data 待发送的数据
-         * @return 实际再内存中存储的数据大小
-         * @see http://curl.haxx.se/libcurl/c/CURLOPT_READFUNCTION.html
-         */
+
+//         * @param data 待发送的数据
+//         * @return 实际再内存中存储的数据大小
+
         public int writeData(byte[] data);
     }
 
@@ -108,11 +99,7 @@ public class Curl {
 
     private native void curlEasyCleanupNative(long handle);
 
-    /**
-     * @param opt   {@link OptLong}
-     * @param value
-     * @return
-     */
+
     public CurlCode curlEasySetopt(OptLong opt, long value) {
         Log.v(TAG, "curlEastSetopt: " + opt + "=" + value);
         return CurlCode.fromValue(curlEasySetoptLongNative(handle,
@@ -157,10 +144,7 @@ public class Curl {
     private native int curlEasySetoptObjectPointArrayNative(long handle,
                                                             int opt, String[] value);
 
-    /**
-     * @param multiParts
-     * @return
-     */
+
     public CurlFormadd setFormdata(List<MultiPart> multiParts) {
         if (multiParts != null && multiParts.size() > 0) {
             return CurlFormadd.fromValue(setFormdataNative(handle,

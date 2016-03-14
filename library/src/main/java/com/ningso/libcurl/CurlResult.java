@@ -7,8 +7,9 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 /**
+ * Created by walexy on 15/1/31.下午5:39
+ *
  * @author walexy
- * @createTime 2015-01-31 23:00:13
  */
 public class CurlResult {
 
@@ -32,9 +33,7 @@ public class CurlResult {
         return status;
     }
 
-    /**
-     * @return may contains \n at end
-     */
+    //may contains \n at end
     public String getStatusLine() {
         return statusLine;
     }
@@ -47,16 +46,12 @@ public class CurlResult {
         return headers.get(header);
     }
 
-    /**
-     * @return original body
-     */
+    //original body
     public byte[] getBody() {
         return body;
     }
 
-    /**
-     * @return decoded if body gzipped
-     */
+    //decoded if body gzipped
     public byte[] getDecodedBody() throws IOException {
         if (!"gzip".equalsIgnoreCase(getHeader("Content-Encoding"))) {
             return body;
@@ -78,10 +73,7 @@ public class CurlResult {
         return decodedBody;
     }
 
-    /**
-     * @return
-     * @throws IOException
-     */
+    //IOException
     public String getBodyAsString() throws IOException {
         if (bodyString == null) {
             bodyString = new String(getDecodedBody());

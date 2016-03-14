@@ -8,7 +8,6 @@ import java.util.Set;
  * Auto generated from 'curl/curl.h', DO NOT EDIT!!!
  *
  * @author: NingSo
- * @Email: ningso.ping@gmail.com
  */
 public abstract class CurlConstant {
 

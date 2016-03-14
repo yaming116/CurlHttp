@@ -3,6 +3,21 @@ Curl library for Android
 > libcurl通过URL语法传送数据，支持`FTP ， FTPS ，HTTP ，HTTPS， GOPHER ， TFTP ，SCP， SFTP ，TELNET， DICT ，LDAP， LDAPS ，FILE ，IMAP， SMTP ， POP3， RTSP库和RTMP`协议 。总之 libcurl是一个功能非常强大的C开源网络库[官网](http://curl.haxx.se/libcurl/c/)，[GitHub](https://github.com/curl/curl)
 
 支持`armeabi,armeabi-v7, x86`平台下 的使用， 通过java jni调用，可以完成jni写的native网络请求。
+
+###Gradle
+Just add the "compile 'com.ningso.libcurl:library:0.0.2'" in your build.gradle of your module.
+```
+dependencies {
+    ...
+    compile 'com.ningso.libcurl:library:0.0.2'
+    ...
+}
+```
+or download the module
+ `compile project(':library')`
+
+----------
+
 ###目前支持
 - [x] addHeader
 - [x] setBody
@@ -24,6 +39,7 @@ Curl library for Android
 ####GET请求
 ``` java
 CurlResult result = CurlHttp.newInstance()
+						.setHttpProxy("192.168.0.6",8888)
                         .addParam("version", "332")
                         .addParam("type", "subject")
                         .addParam("channel_mark", "豌豆荚")
