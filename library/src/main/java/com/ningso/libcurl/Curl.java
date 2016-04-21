@@ -164,6 +164,7 @@ public class Curl {
     private native int curlEasyPerformNavite(long handle);
 
     static {
-        System.loadLibrary("curl4java");
+        System.loadLibrary("zhitongyuninterfaces");
+        System.loadLibrary("curlandroid");
     }
 }

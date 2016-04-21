@@ -2,6 +2,7 @@ package com.ningso.libcurl;
 
 import android.util.Log;
 
+import com.ningso.libcurl.callback.CurlDownloadCallback;
 import com.ningso.libcurl.generates.CurlCode;
 import com.ningso.libcurl.generates.CurlConstant;
 import com.ningso.libcurl.generates.CurlFormadd;
@@ -13,6 +14,9 @@ import com.ningso.libcurl.params.NameValuePair;
 import com.ningso.libcurl.utils.StringUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -32,6 +36,7 @@ import java.util.regex.Pattern;
  */
 public class CurlHttp {
     private static final String TAG = CurlHttp.class.getSimpleName();
+    private static final String CONTENT_LENGTH = "Content-Length";
 
     private Curl curl;
     private Map<String, String> headerMap;
@@ -46,7 +51,12 @@ public class CurlHttp {
     private int proxyPort;
     private boolean asMultipart = false;
     private String url;
-
+    private long contentLength;//Content-Length
+    private long currentLength;//
+    private boolean asRange;//是否断点下载
+    private boolean autoRange;//是否自动拼接断点数据
+    private String path;//文件地址
+    private CurlDownloadCallback downloadCallback;
 
     private CurlHttp() {
         curl = new Curl();
@@ -168,6 +178,41 @@ public class CurlHttp {
         return this;
     }
 
+    public CurlHttp setDownloadCallback(CurlDownloadCallback downloadCallback) {
+        this.downloadCallback = downloadCallback;
+        return this;
+    }
+
+    public CurlHttp setAutoRange(boolean autoRange){
+        this.autoRange = autoRange;
+        return this;
+    }
+
+    public CurlHttp asRange(long start){
+        return asRange(start, 0);
+    }
+
+    public CurlHttp asRange(long start, long end){
+        if (start < 1){
+            throw new IllegalArgumentException("start must > 0");
+        }
+        asRange = true;
+        if (end < 1){
+            addHeader("RANGE" , "bytes=" + start + "-");
+        }else {
+            addHeader("RANGE" , "bytes=" + start + "-" + end);
+        }
+        return this;
+    }
+
+    public CurlHttp asFile(String path){
+        if (isPost()) {
+            throw new IllegalArgumentException("A post url already set!");
+        }
+        this.path = path;
+        return this;
+    }
+
     public CurlHttp getUrl(String url) {
         if (isPost()) {
             throw new IllegalArgumentException("A post url already set!");
@@ -257,6 +302,7 @@ public class CurlHttp {
 
             @Override
             public int readData(byte[] data) {
+                Log.i(TAG, "header result");
                 if (data == null) {
                     return 0;
                 }
@@ -264,6 +310,7 @@ public class CurlHttp {
                 if (!StringUtils.isBlank(header)) {
                     String[] nameAndValue = StringUtils.split(header, ":", 2);
                     if (nameAndValue.length == 2) {
+
                         resultMap.put(nameAndValue[0].trim(), nameAndValue[1].trim());
                     } else if (nameAndValue.length == 1) {
                         Log.i(TAG, "header: " + nameAndValue[0]);
@@ -276,6 +323,11 @@ public class CurlHttp {
                                 statusLine.append(nameAndValue[0]);
                             }
                         }
+                    }
+
+                    final String c = resultMap.get(CONTENT_LENGTH);
+                    if (c != null){
+                        contentLength = Long.parseLong(c);
                     }
                 }
                 return data.length;
@@ -291,8 +343,12 @@ public class CurlHttp {
                 if (data != null && data.length == 0) {
                     return 0;
                 }
+                currentLength += data.length;
                 try {
                     os.write(data);
+                    if (downloadCallback != null){
+                        downloadCallback.process(contentLength, currentLength);
+                    }
                 } catch (IOException e) {
                     //Log.w(TAG, "write fail", e);
                     return 0;
@@ -306,17 +362,34 @@ public class CurlHttp {
         if (url == null) {
             throw new IllegalStateException("url getUrl/postUrl not set");
         }
+
+        OutputStream bodyOs = null;
+        if (path == null){
+            bodyOs = new ByteArrayOutputStream();
+        }else {
+            try {
+                final File src = new File(path);
+                if (autoRange){
+                    asRange(src.length());
+                }
+                bodyOs = new FileOutputStream(src, asRange);
+
+            } catch (FileNotFoundException e) {
+                throw  new CurlException(CurlCode.CURLE_WRITE_ERROR);
+            }
+        }
+
         // - populate headers
         setRequestHeaders();
 
         // - populate params
         // - set post data (if needed)
         Map<String, String> resultHeaderMap = new HashMap<String, String>();
-        ByteArrayOutputStream bodyOs = new ByteArrayOutputStream();
 
         AtomicInteger status = new AtomicInteger();
         StringBuffer statusLine = new StringBuffer();
         setHeaderCallback(resultHeaderMap, status, statusLine);
+
         setBodyCallback(bodyOs);
 
         if (isPost()) {
@@ -370,7 +443,22 @@ public class CurlHttp {
             // - read response
 
             // parse result code from headers
-            return new CurlResult(status.get(), statusLine.toString(), resultHeaderMap, bodyOs.toByteArray());
+            if (path == null){
+                ByteArrayOutputStream b = (ByteArrayOutputStream) bodyOs;
+                return new CurlResult(status.get(), statusLine.toString(), resultHeaderMap,0,  b.toByteArray(),code.getValue());
+            }else {
+                try {
+                    bodyOs.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (status.get() != 200){
+                    final File src = new File(path);
+                    src.delete();
+                }
+                return new CurlResult(status.get(), statusLine.toString(), resultHeaderMap, 1, null, code.getValue());
+            }
+
         } finally {
             curl.curlEasyCleanup();
         }
