@@ -40,3 +40,10 @@ app/build/
 *.iml
 library/src/main/obj/
 simplelibrary/src/main/obj/
+
+gradle.properties
+library/maven.properties
+library/gradle.properties
+library/gradle-mvn-push.properties
+library/src/main/java/jin/armeabi
+
