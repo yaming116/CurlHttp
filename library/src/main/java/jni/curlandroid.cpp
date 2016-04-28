@@ -11,11 +11,13 @@
 static JavaVM *cached_jvm;
 
 // read/write callback
+static jmethodID MID_CB_progress;
 static jmethodID MID_CB_write; // write is really read
 static jmethodID MID_CB_read;  // and read is really write
                                // don't be confused
 
 // form Pojo
+static jmethodID MID_MultiPart_get_filepath;
 static jmethodID MID_MultiPart_get_name;
 static jmethodID MID_MultiPart_get_filename;
 static jmethodID MID_MultiPart_get_content_type;
@@ -39,6 +41,15 @@ JNIEXPORT jint JNICALL
        return JNI_ERR; /* JNI version not supported */
     }
 //com_ningso_libcurl_
+    cls = env->FindClass("com/ningso/libcurl/Curl$ProgressCallback");
+    if (cls == NULL) {
+        return JNI_ERR;
+    }
+    MID_CB_progress = env->GetMethodID(cls, "progress", "(DDDD)I");
+    if (MID_CB_progress == NULL) {
+        return JNI_ERR;
+    }
+
     cls = env->FindClass("com/ningso/libcurl/Curl$WriteCallback");
     if (cls == NULL) {
        return JNI_ERR;
@@ -58,6 +69,10 @@ JNIEXPORT jint JNICALL
        return JNI_ERR;
     }
     const char* multipart = "com/ningso/libcurl/params/MultiPart";
+    MID_MultiPart_get_filepath = findMethod(env, multipart, "getFilePath", "()Ljava/lang/String;");
+    if (MID_MultiPart_get_filepath == NULL) {
+        return JNI_ERR;
+    }
     MID_MultiPart_get_name = findMethod(env, multipart, "getName", "()Ljava/lang/String;");
     if (MID_MultiPart_get_name == NULL) {
         return JNI_ERR;
@@ -233,6 +248,14 @@ JNIEXPORT jint JNICALL Java_com_ningso_libcurl_Curl_curlEasySetoptLongNative
     return (int) curl_easy_setopt(holder->getCurl(), (CURLoption) opt, (long) value);
 }
 
+int progress_callback(void *clientp,double dltotal,double dlnow, double ultotal, double ulnow) {
+    jobject object = (jobject)clientp;
+    JNIEnv *env = JNU_GetEnv();
+    return env->CallIntMethod(object, MID_CB_progress, dltotal,dlnow,ultotal,ulnow);
+}
+
+//CURLcode curl_easy_setopt(CURL *handle, CURLOPT_PROGRESSFUNCTION, progress_callback);
+
 size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
     JNIEnv *env;
     jint result;
@@ -307,6 +330,13 @@ JNIEXPORT int JNICALL Java_com_ningso_libcurl_Curl_curlEasySetoptFunctionNative
         cb_ref = env->NewGlobalRef(cb);
         holder->addGlobalRefs(cb_ref);
         curl_easy_setopt(curl, CURLOPT_READDATA, (void *)cb_ref);
+        break;
+    case CURLOPT_PROGRESSFUNCTION:
+        curl_easy_setopt(curl, (CURLoption) opt, &progress_callback);
+        cb_ref = env->NewGlobalRef(cb);
+        holder->addGlobalRefs(cb_ref);
+        curl_easy_setopt(curl,CURLOPT_PROGRESSDATA, (void *)cb_ref);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
         break;
     default:
         // no-op
@@ -419,6 +449,7 @@ JNIEXPORT jint JNICALL Java_com_ningso_libcurl_Curl_setFormdataNative
         for (int i = 0; i < len; i++) {
             //LOGV(".");
             jobject part = env->GetObjectArrayElement(multi_array, i);
+            jstring filePath = (jstring) env->CallObjectMethod(part, MID_MultiPart_get_filepath);
             jstring name = (jstring) env->CallObjectMethod(part, MID_MultiPart_get_name);
             jstring filename = (jstring) env->CallObjectMethod(part, MID_MultiPart_get_filename);
             jstring content_type = (jstring) env->CallObjectMethod(part, MID_MultiPart_get_content_type);
@@ -430,45 +461,55 @@ JNIEXPORT jint JNICALL Java_com_ningso_libcurl_Curl_setFormdataNative
 
             const char* name_str = env->GetStringUTFChars(name, 0);
 
-            // content_type and filename may be null
-            if (content_type == NULL && filename == NULL) {
-            	code = curl_formadd(&post, &last,
-            						CURLFORM_COPYNAME, name_str,
-            						CURLFORM_BUFFER, "file.dat",
-            						CURLFORM_BUFFERPTR, bytes,
-            						CURLFORM_BUFFERLENGTH, content_length,
-								    CURLFORM_END);
-            } else if (content_type == NULL) {
-            	const char* filename_str = env->GetStringUTFChars(filename, 0);
-            	code = curl_formadd(&post, &last,
-									CURLFORM_COPYNAME, name_str,
-									CURLFORM_BUFFER, filename_str,
-									CURLFORM_BUFFERPTR, bytes,
-									CURLFORM_BUFFERLENGTH, content_length,
-									CURLFORM_END);
-            	env->ReleaseStringUTFChars(filename, filename_str);
-            } else if (filename == NULL) {
-            	const char* content_type_str = env->GetStringUTFChars(content_type, 0);
-            	code = curl_formadd(&post, &last,
-									CURLFORM_COPYNAME, name_str,
-									CURLFORM_BUFFER, "file.dat",
-									CURLFORM_CONTENTTYPE, content_type_str,
-									CURLFORM_BUFFERPTR, bytes,
-									CURLFORM_BUFFERLENGTH, content_length,
-									CURLFORM_END);
-				env->ReleaseStringUTFChars(content_type, content_type_str);
-            } else {
-            	const char* filename_str = env->GetStringUTFChars(filename, 0);
-            	const char* content_type_str = env->GetStringUTFChars(content_type, 0);
-            	code = curl_formadd(&post, &last,
-									CURLFORM_COPYNAME, name_str,
-									CURLFORM_BUFFER, filename_str,
-									CURLFORM_CONTENTTYPE, content_type_str,
-									CURLFORM_BUFFERPTR, bytes,
-									CURLFORM_BUFFERLENGTH, content_length,
-									CURLFORM_END);
-            	env->ReleaseStringUTFChars(filename, filename_str);
-            	env->ReleaseStringUTFChars(content_type, content_type_str);
+            if (filePath != NULL) {
+                const char *filepath_str = env->GetStringUTFChars(filePath, 0);
+                code = curl_formadd(&post, &last,
+                                    CURLFORM_COPYNAME, name_str,
+                                    CURLFORM_FILE, filepath_str,
+                                    CURLFORM_END);
+                env->ReleaseStringUTFChars(filePath, filepath_str);
+            }
+            else {
+                // content_type and filename may be null
+                if (content_type == NULL && filename == NULL) {
+                    code = curl_formadd(&post, &last,
+                                        CURLFORM_COPYNAME, name_str,
+                                        CURLFORM_BUFFER, "file.dat",
+                                        CURLFORM_BUFFERPTR, bytes,
+                                        CURLFORM_BUFFERLENGTH, content_length,
+                                        CURLFORM_END);
+                } else if (content_type == NULL) {
+                    const char *filename_str = env->GetStringUTFChars(filename, 0);
+                    code = curl_formadd(&post, &last,
+                                        CURLFORM_COPYNAME, name_str,
+                                        CURLFORM_BUFFER, filename_str,
+                                        CURLFORM_BUFFERPTR, bytes,
+                                        CURLFORM_BUFFERLENGTH, content_length,
+                                        CURLFORM_END);
+                    env->ReleaseStringUTFChars(filename, filename_str);
+                } else if (filename == NULL) {
+                    const char *content_type_str = env->GetStringUTFChars(content_type, 0);
+                    code = curl_formadd(&post, &last,
+                                        CURLFORM_COPYNAME, name_str,
+                                        CURLFORM_BUFFER, "file.dat",
+                                        CURLFORM_CONTENTTYPE, content_type_str,
+                                        CURLFORM_BUFFERPTR, bytes,
+                                        CURLFORM_BUFFERLENGTH, content_length,
+                                        CURLFORM_END);
+                    env->ReleaseStringUTFChars(content_type, content_type_str);
+                } else {
+                    const char *filename_str = env->GetStringUTFChars(filename, 0);
+                    const char *content_type_str = env->GetStringUTFChars(content_type, 0);
+                    code = curl_formadd(&post, &last,
+                                        CURLFORM_COPYNAME, name_str,
+                                        CURLFORM_BUFFER, filename_str,
+                                        CURLFORM_CONTENTTYPE, content_type_str,
+                                        CURLFORM_BUFFERPTR, bytes,
+                                        CURLFORM_BUFFERLENGTH, content_length,
+                                        CURLFORM_END);
+                    env->ReleaseStringUTFChars(filename, filename_str);
+                    env->ReleaseStringUTFChars(content_type, content_type_str);
+                }
             }
 
             env->ReleaseStringUTFChars(name, name_str);

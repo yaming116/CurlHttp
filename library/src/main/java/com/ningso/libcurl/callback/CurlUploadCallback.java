@@ -3,7 +3,7 @@ package com.ningso.libcurl.callback;
 /**
  * Created by Sun on 2016/4/16.
  */
-public interface CurlDownloadCallback {
+public interface CurlUploadCallback {
     /**
      *  下载回调
      * @param totalCount

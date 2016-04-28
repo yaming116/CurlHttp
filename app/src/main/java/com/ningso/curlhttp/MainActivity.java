@@ -81,8 +81,9 @@ public class MainActivity extends AppCompatActivity {
                         File f = new File(getExternalCacheDir() , "test.apk");
                         CurlResult result = CurlHttp.newInstance()
 //                        .setHttpProxy("192.168.0.6",8888)
+                                .addHeader("Content-Type", "multipart/form-data")
 //                                .addHeader("Accept", "*/*")
-                                .setFollowLocation(true)
+//                                .setFollowLocation(true)
 //                                .addHeader("Accept-Encoding", "gzip,deflate")
 //                                .setBody("text/xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?><SOAP-ENV:Envelope><SOAP-ENV:Body><ns:GetClientInterfacesUrl><J><Z>1</Z><K xsi:type=\"xsd:string\">eJwtitsKwyAQRP9lnyVEYy76FX0vfTDuiqFpBI2lQfLvtTQwMMyZU+AGGmx4NZ9M3izNavJmPUVgkKwPYbUBqSpcdLIfKn3ScaHRicnZURIfpGqVQiRDqAzN0iFNP/lNMS1hq/KclxVFy/u2F0rUa6e0gy7AQfOTgYnRHKDvdTPOuo6Bw1QDrFzqv87H+QWEgTZ4</K></J></ns:GetClientInterfacesUrl></SOAP-ENV:Body></SOAP-ENV:Envelope>".getBytes())
 //                                .addHeader("charset", "utf-8")
@@ -90,15 +91,22 @@ public class MainActivity extends AppCompatActivity {
 //                                .addParam("Z", "0")
 //                                .addParam("K", json.toString())
 //                                .postUrl("http://192.168.1.163/api/course/classify")
-                                .asFile(f.getAbsolutePath() )
-                                .asRange(f.length())
+//                                .addParam("Attach[\"description\"]", "test")
+//                                .addParam("desc", "test")
+//                                        .addParam("Attach[\"description\"]", "test")
+//                                .addMultiPartPostParam("file", "file", "application/octet-stream", getExternalCacheDir() + "/test.apk")
+                                .addMultiPartPostParam("upfile", "test", "application/octet-stream", getExternalCacheDir() + "/test.jpg")
+//                                .asFile(f.getAbsolutePath() )
+//                                .asRange(f.length())
                                 .setDownloadCallback(new CurlDownloadCallback() {
                                     @Override
                                     public void process(long totalCount, long count) {
                                         Log.d("test", "start: " + totalCount + " count:" + count);
                                     }
                                 })
-                                .getUrl("http://m5.apk.67mo.com/apk/PPAssistant_41123_PM_3346.apk")
+                                .postUrl("http://139.196.206.162/upload.php")
+//                                  .postUrl("http://192.168.1.121/test/ui.php")
+//                                .getUrl("http://m5.apk.67mo.com/apk/PPAssistant_41123_PM_3346.apk")
                                 .execute();
                         return result;
                     }

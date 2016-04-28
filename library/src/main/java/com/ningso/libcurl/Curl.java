@@ -41,6 +41,9 @@ public class Curl {
 
     private static boolean INIT = false;
 
+    public interface ProgressCallback extends Callback {
+        public int progress(double dltotal, double dlnow, double ultotal, double ulnow);
+    }
     public interface WriteCallback extends Callback {
 
         // 当接受到数据时被调用
@@ -113,6 +116,13 @@ public class Curl {
         return CurlCode.fromValue(curlEasySetoptFunctionNative(handle,
                 opt.getValue(), callback));
     }
+
+    public CurlCode curlEasySetopt(OptFunctionPoint opt, ProgressCallback callback) {
+        Log.v(TAG, "curlEastSetopt: " + opt + "=" + callback);
+        return CurlCode.fromValue(curlEasySetoptFunctionNative(handle,
+                opt.getValue(), callback));
+    }
+
 
     private native int curlEasySetoptFunctionNative(long handle, int opt,
                                                     Callback callback);

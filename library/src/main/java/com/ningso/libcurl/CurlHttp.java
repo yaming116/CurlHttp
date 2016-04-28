@@ -3,6 +3,7 @@ package com.ningso.libcurl;
 import android.util.Log;
 
 import com.ningso.libcurl.callback.CurlDownloadCallback;
+import com.ningso.libcurl.callback.CurlUploadCallback;
 import com.ningso.libcurl.generates.CurlCode;
 import com.ningso.libcurl.generates.CurlConstant;
 import com.ningso.libcurl.generates.CurlFormadd;
@@ -57,6 +58,8 @@ public class CurlHttp {
     private boolean autoRange;//是否自动拼接断点数据
     private String path;//文件地址
     private CurlDownloadCallback downloadCallback;
+    private CurlUploadCallback curlUploadCallback;
+    private int isCancle = 0;//-1  取消数据传输
 
     private CurlHttp() {
         curl = new Curl();
@@ -193,7 +196,7 @@ public class CurlHttp {
     }
 
     public CurlHttp asRange(long start, long end){
-        if (start < 1){
+        if (start < 0){
             throw new IllegalArgumentException("start must > 0");
         }
         asRange = true;
@@ -210,6 +213,11 @@ public class CurlHttp {
             throw new IllegalArgumentException("A post url already set!");
         }
         this.path = path;
+        return this;
+    }
+
+    public CurlHttp cancle(){
+        isCancle = -1;
         return this;
     }
 
@@ -282,6 +290,20 @@ public class CurlHttp {
         return this;
     }
 
+    public CurlHttp addMultiPartPostParam(String name, String filename, String contentType, String filePath) {
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("name is required");
+        }
+        if (filePath == null) {
+            throw new IllegalArgumentException("filePath is required");
+        }
+        if (multiPartList == null) {
+            multiPartList = new ArrayList<>();
+        }
+        multiPartList.add(new MultiPart(name, filename, contentType, filePath));
+        return this;
+    }
+
 //    /**
 //     * set raw body to post(override {@link #addParam(String, List)} {@link #addParam(String, String)} and {@link #addMultiPartPostParam(String, String, String, byte[])})
 //     *
@@ -347,7 +369,7 @@ public class CurlHttp {
                 try {
                     os.write(data);
                     if (downloadCallback != null){
-                        downloadCallback.process(contentLength, currentLength);
+                        downloadCallback.process(contentLength, currentLength, (int)(currentLength / contentLength));
                     }
                 } catch (IOException e) {
                     //Log.w(TAG, "write fail", e);
@@ -356,6 +378,18 @@ public class CurlHttp {
                 return data.length;
             }
         });
+        curl.curlEasySetopt(OptFunctionPoint.CURLOPT_PROGRESSFUNCTION, new Curl.ProgressCallback() {
+            @Override
+            public int progress(double dltotal, double dlnow, double ultotal, double ulnow) {
+                Log.w(TAG, "write fail" + "dltotal: " + dltotal + "dlnow: " + dlnow +"ultotal: "
+                        + ultotal +"ulnow: " + ulnow);
+                if (curlUploadCallback != null){
+                    curlUploadCallback.process((long)ultotal,(long)ulnow, (int)(ulnow / ultotal));
+                }
+                return isCancle;
+            }
+        });
+
     }
 
     public CurlResult execute() throws CurlException {
@@ -407,15 +441,15 @@ public class CurlHttp {
                 } else {
                     url += "?" + params;
                 }
-
-                Log.v(TAG, "contact params to url:" + url);
             }
         }
 
         if (get) {
             curl.curlEasySetopt(OptLong.CURLOPT_HTTPGET, 1);
         } else {
-            curl.curlEasySetopt(OptLong.CURLOPT_POST, 1);
+            if (!isMultipart()){
+                curl.curlEasySetopt(OptLong.CURLOPT_POST, 1);
+            }
         }
         curl.curlEasySetopt(OptObjectPoint.CURLOPT_URL, url);
 

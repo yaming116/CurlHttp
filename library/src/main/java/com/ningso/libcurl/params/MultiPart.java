@@ -7,10 +7,11 @@ package com.ningso.libcurl.params;
  */
 public class MultiPart {
 
+    private String filePath;
     private final String name;
     private final String filename;
     private final String contentType;
-    private final byte[] content;
+    private byte[] content;
 
     public MultiPart(String name, String filename, String contentType, byte[] content) {
         super();
@@ -19,6 +20,16 @@ public class MultiPart {
         this.contentType = contentType;
         this.content = content;
     }
+    public MultiPart(String name, String filename, String contentType,String filePath) {
+        super();
+        this.name = name;
+        this.filename = filename;
+        this.contentType = contentType;
+        this.filePath = filePath;
+        this.content = new byte[0];
+    }
+
+    public String getFilePath() {return filePath;}
 
     public String getName() {
         return name;
