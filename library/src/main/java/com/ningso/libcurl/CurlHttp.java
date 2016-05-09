@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 public class CurlHttp {
     private static final String TAG = CurlHttp.class.getSimpleName();
     private static final String CONTENT_LENGTH = "Content-Length";
+    public static boolean DEBUG = false;
 
     private Curl curl;
     private Map<String, String> headerMap;
@@ -186,6 +187,11 @@ public class CurlHttp {
         return this;
     }
 
+    public CurlHttp setCurlUploadCallback(CurlUploadCallback curlUploadCallback) {
+        this.curlUploadCallback = curlUploadCallback;
+        return this;
+    }
+
     public CurlHttp setAutoRange(boolean autoRange){
         this.autoRange = autoRange;
         return this;
@@ -324,7 +330,7 @@ public class CurlHttp {
 
             @Override
             public int readData(byte[] data) {
-                Log.i(TAG, "header result");
+
                 if (data == null) {
                     return 0;
                 }
@@ -335,7 +341,9 @@ public class CurlHttp {
 
                         resultMap.put(nameAndValue[0].trim(), nameAndValue[1].trim());
                     } else if (nameAndValue.length == 1) {
-                        Log.i(TAG, "header: " + nameAndValue[0]);
+                        if (DEBUG){
+                            Log.i(TAG, "header: " + nameAndValue[0]);
+                        }
                         Matcher m = STATUS_PATTERN.matcher(nameAndValue[0]);
                         if (m.find()) {
                             int code = Integer.valueOf(m.group(1));
@@ -368,8 +376,13 @@ public class CurlHttp {
                 currentLength += data.length;
                 try {
                     os.write(data);
-                    if (downloadCallback != null){
-                        downloadCallback.process(contentLength, currentLength, (int)(currentLength / contentLength));
+                    if (downloadCallback != null && contentLength > 0){
+                        try {
+                            int p = (int) (currentLength * 100 / contentLength);
+                            downloadCallback.process(contentLength, currentLength, p < 1 ? 1 : p);
+                        }catch (Exception ignore){
+                            //
+                        }
                     }
                 } catch (IOException e) {
                     //Log.w(TAG, "write fail", e);
@@ -381,10 +394,17 @@ public class CurlHttp {
         curl.curlEasySetopt(OptFunctionPoint.CURLOPT_PROGRESSFUNCTION, new Curl.ProgressCallback() {
             @Override
             public int progress(double dltotal, double dlnow, double ultotal, double ulnow) {
-                Log.w(TAG, "write fail" + "dltotal: " + dltotal + "dlnow: " + dlnow +"ultotal: "
-                        + ultotal +"ulnow: " + ulnow);
-                if (curlUploadCallback != null){
-                    curlUploadCallback.process((long)ultotal,(long)ulnow, (int)(ulnow / ultotal));
+
+                if (curlUploadCallback != null && ultotal > 0){
+                    try {
+                        long t = (long) ultotal;
+                        long uln = (long) ulnow;
+                        int p = (int) (uln * 100 / t);
+                        curlUploadCallback.process(t,uln, p < 1 ? 1 : p);
+                    }catch (Exception ignore){
+
+                    }
+
                 }
                 return isCancle;
             }
@@ -471,11 +491,12 @@ public class CurlHttp {
             }
 
             for (Map.Entry<String, String> entry : resultHeaderMap.entrySet()) {
-                Log.d(TAG, "Header: " + entry.getKey() + ": " + entry.getValue());
+                if (DEBUG){
+                    Log.d(TAG, "Header: " + entry.getKey() + ": " + entry.getValue());
+                }
             }
 
             // - read response
-
             // parse result code from headers
             if (path == null){
                 ByteArrayOutputStream b = (ByteArrayOutputStream) bodyOs;
@@ -505,10 +526,12 @@ public class CurlHttp {
             if (value == null) {
                 value = "";
             }
-            Log.d(TAG, "header: " + entry.getKey() + " => " + value);
+            if (DEBUG){
+                Log.d(TAG, "header: " + entry.getKey() + " => " + value);
+            }
+
             headers.add(entry.getKey() + ": " + value);
         }
-        Log.d(TAG, "add hreader: " + headers.size());
         curl.curlEasySetopt(OptObjectPoint.CURLOPT_HTTPHEADER, headers.toArray(new String[headerMap.size()]));
     }
 
@@ -598,7 +621,9 @@ public class CurlHttp {
             }
         }
         if (proxyHost != null) {
-            Log.d(TAG, "Set http proxy: " + proxyHost + ":" + proxyPort);
+            if (DEBUG){
+                Log.d(TAG, "Set http proxy: " + proxyHost + ":" + proxyPort);
+            }
             curl.curlEasySetopt(OptObjectPoint.CURLOPT_PROXY, proxyHost);
             curl.curlEasySetopt(OptLong.CURLOPT_PROXYPORT, proxyPort);
         }

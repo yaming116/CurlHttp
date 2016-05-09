@@ -83,7 +83,9 @@ public class Curl {
     private native static void curlGlobalCleanupNative();
 
     public void curlEasyInit() throws CurlException {
-        Log.v(TAG, "curlEastInit");
+        if (CurlHttp.DEBUG){
+            Log.v(TAG, "curlEastInit");
+        }
         handle = curlEasyInitNative();
         if (handle == 0) {
             throw new CurlException("curl init native fail");
@@ -93,7 +95,9 @@ public class Curl {
     private native long curlEasyInitNative();
 
     public void curlEasyCleanup() {
-        Log.v(TAG, "curlEastCleanup: " + handle);
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEastCleanup: " + handle);
+        }
         if (handle != 0) {
             curlEasyCleanupNative(handle);
         }
@@ -104,7 +108,9 @@ public class Curl {
 
 
     public CurlCode curlEasySetopt(OptLong opt, long value) {
-        Log.v(TAG, "curlEastSetopt: " + opt + "=" + value);
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEastSetopt: " + opt + "=" + value);
+        }
         return CurlCode.fromValue(curlEasySetoptLongNative(handle,
                 opt.getValue(), value));
     }
@@ -112,13 +118,17 @@ public class Curl {
     private native int curlEasySetoptLongNative(long handle, int opt, long value);
 
     public CurlCode curlEasySetopt(OptFunctionPoint opt, WriteCallback callback) {
-        Log.v(TAG, "curlEastSetopt: " + opt + "=" + callback);
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEastSetopt: " + opt + "=" + callback);
+        }
         return CurlCode.fromValue(curlEasySetoptFunctionNative(handle,
                 opt.getValue(), callback));
     }
 
     public CurlCode curlEasySetopt(OptFunctionPoint opt, ProgressCallback callback) {
-        Log.v(TAG, "curlEastSetopt: " + opt + "=" + callback);
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEastSetopt: " + opt + "=" + callback);
+        }
         return CurlCode.fromValue(curlEasySetoptFunctionNative(handle,
                 opt.getValue(), callback));
     }
@@ -128,7 +138,9 @@ public class Curl {
                                                     Callback callback);
 
     public CurlCode curlEasySetopt(OptObjectPoint opt, String value) {
-        Log.v(TAG, "curlEastSetopt: " + opt + "=" + value);
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEastSetopt: " + opt + "=" + value);
+        }
         return CurlCode.fromValue(curlEasySetoptObjectPointNative(handle,
                 opt.getValue(), value));
     }
@@ -137,7 +149,9 @@ public class Curl {
                                                        String value);
 
     public CurlCode curlEasySetopt(OptObjectPoint opt, byte[] value) {
-        Log.v(TAG, "curlEastSetopt: " + opt + "=" + value);
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEastSetopt: " + opt + "=" + value);
+        }
         return CurlCode.fromValue(curlEasySetoptObjectPointBytesNative(handle,
                 opt.getValue(), value));
     }
@@ -146,7 +160,9 @@ public class Curl {
                                                             int opt, byte[] value);
 
     public CurlCode curlEasySetopt(OptObjectPoint opt, String[] values) {
-        Log.v(TAG, "curlEastSetopt: " + opt + "=" + values);
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEastSetopt: " + opt + "=" + values);
+        }
         return CurlCode.fromValue(curlEasySetoptObjectPointArrayNative(handle,
                 opt.getValue(), values));
     }
@@ -167,7 +183,9 @@ public class Curl {
     private native int setFormdataNative(long handle, MultiPart[] multiArray);
 
     public CurlCode curlEasyPerform() {
-        Log.v(TAG, "curlEasyPerform");
+        if (CurlHttp.DEBUG) {
+            Log.v(TAG, "curlEasyPerform");
+        }
         return CurlCode.fromValue(curlEasyPerformNavite(handle));
     }
 

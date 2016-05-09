@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.ningso.libcurl.CurlHttp;
 import com.ningso.libcurl.CurlResult;
 import com.ningso.libcurl.callback.CurlDownloadCallback;
+import com.ningso.libcurl.callback.CurlUploadCallback;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -100,8 +101,14 @@ public class MainActivity extends AppCompatActivity {
 //                                .asRange(f.length())
                                 .setDownloadCallback(new CurlDownloadCallback() {
                                     @Override
-                                    public void process(long totalCount, long count) {
-                                        Log.d("test", "start: " + totalCount + " count:" + count);
+                                    public void process(long totalCount, long count, int percent) {
+                                        Log.d("test", "start: " + totalCount + " count:" + count   + " percent:" + percent);
+                                    }
+                                })
+                                .setCurlUploadCallback(new CurlUploadCallback() {
+                                    @Override
+                                    public void process(long totalCount, long count, int percent) {
+                                        Log.d("test", "start: " + totalCount + " count:" + count  + " percent:" + percent);
                                     }
                                 })
                                 .postUrl("http://139.196.206.162/upload.php")
