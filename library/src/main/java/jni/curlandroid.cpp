@@ -474,7 +474,6 @@ JNIEXPORT jint JNICALL Java_com_ningso_libcurl_Curl_setFormdataNative
                 if (content_type == NULL && filename == NULL) {
                     code = curl_formadd(&post, &last,
                                         CURLFORM_COPYNAME, name_str,
-                                        CURLFORM_BUFFER, "file.dat",
                                         CURLFORM_BUFFERPTR, bytes,
                                         CURLFORM_BUFFERLENGTH, content_length,
                                         CURLFORM_END);
