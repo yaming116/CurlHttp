@@ -58,6 +58,7 @@ public class CurlHttp {
     private boolean asRange;//是否断点下载
     private boolean autoRange;//是否自动拼接断点数据
     private String path;//文件地址
+    private String tempPath;// path + _temp
     private CurlDownloadCallback downloadCallback;
     private CurlUploadCallback curlUploadCallback;
     private int isCancle = 0;//-1  取消数据传输
@@ -219,6 +220,7 @@ public class CurlHttp {
             throw new IllegalArgumentException("A post url already set!");
         }
         this.path = path;
+        this.tempPath = path + "_temp";
         return this;
     }
 
@@ -422,8 +424,8 @@ public class CurlHttp {
             bodyOs = new ByteArrayOutputStream();
         }else {
             try {
-                final File src = new File(path);
-                if (autoRange){
+                final File src = new File(tempPath);
+                if (autoRange && src.exists()){
                     asRange(src.length());
                 }
                 bodyOs = new FileOutputStream(src, asRange);
@@ -507,8 +509,10 @@ public class CurlHttp {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (status.get() != 200){
-                    final File src = new File(path);
+                final File src = new File(tempPath);
+                if (ok(status.get())){
+                    src.renameTo(new File(path));
+                }else {
                     src.delete();
                 }
                 return new CurlResult(status.get(), statusLine.toString(), resultHeaderMap, 1, null, code.getValue());
@@ -517,6 +521,10 @@ public class CurlHttp {
         } finally {
             curl.curlEasyCleanup();
         }
+    }
+
+    private boolean ok(int code){
+        return code == 200 || code == 206;
     }
 
     private void setRequestHeaders() {
